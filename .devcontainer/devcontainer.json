@@ -13,7 +13,7 @@
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 //   "postCreateCommand": "/bin/bash/workspaces/php-project ./.devcontainer/post-create.sh",
-  "postCreateCommand": "sh .devcontainer/post-create.sh",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
 
 	// Configure tool-specific properties.
 	"customizations": {
