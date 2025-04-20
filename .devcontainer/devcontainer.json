@@ -23,7 +23,8 @@
 				"ms-vsliveshare.vsliveshare",
 				"genuitecllc.codetogether",
 				"GitHub.codespaces",
-				"GitHub.remotehub"
+				"GitHub.remotehub",
+				"eamodio.gitlens"
 			],
 			"settings": {
 				"editor.fontLigatures": true,
