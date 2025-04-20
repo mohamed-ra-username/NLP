@@ -1,4 +1,7 @@
 import nltk
+k=1
+if k == 1:
+    k+=1
 sentence = """At eight o'clock on Thursday morning
 ... Arthur didn't feel very good."""
 tokens = nltk.word_tokenize(sentence)
