@@ -22,6 +22,8 @@ What's up, my g! 🥷
 
 ---
 # Optional
+## You should download [GitHub Desktop](https://github.com/apps/desktop)
+
 ## If you want to use your own VS code program
 ![vs code](https://github.com/user-attachments/assets/4f3648c8-d851-41b7-8b56-f6fb47cf9164)
 
