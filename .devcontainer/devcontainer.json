@@ -27,17 +27,6 @@
 				"editor.fontLigatures": true,
 				"editor.fontFamily": "Fira Code"
 			}
-		},
-		"codespaces": {
-			"extensions": [
-				"ms-python.python",
-				"ms-vsliveshare.vsliveshare",
-				"genuitecllc.codetogether"
-			],
-			"settings": {
-				"editor.fontLigatures": true,
-				"editor.fontFamily": "Fira Code"
-			}
 		}
 	}
 
