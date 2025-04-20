@@ -21,13 +21,16 @@
 			"extensions": [
 				"ms-python.python",
 				"ms-vsliveshare.vsliveshare",
-				"genuitecllc.codetogether"
+				"genuitecllc.codetogether",
+				"GitHub.codespaces",
+				"GitHub.remotehub"
 			],
 			"settings": {
 				"editor.fontLigatures": true,
 				"editor.fontFamily": "Fira Code"
 			}
 		}
+
 	}
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
