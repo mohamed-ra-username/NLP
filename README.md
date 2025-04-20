@@ -7,7 +7,7 @@ What's up, my g! 🥷
 ![Nigger](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWdwbzM4Z2pjenNmN2J5am14enp6eXM4eHd3N3pzdGU5N2FqbXI4dCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LZaIwlg8dPAiqFw4VC/giphy.gif)
 
 
-# How to install
+# How to install?
 1) 
     * Click on code
     * Create new codespace
