@@ -47,7 +47,7 @@ What's up, my g! 🥷
 
 ---
 # Issues
-If you have "immport issues" and can't run the code, then you should run `install_libraries.bat` file  
+If you have "import issues" and can't run the code, then you should run `install_libraries.bat` file  
 ![image](https://github.com/user-attachments/assets/ef0100f7-2265-4821-9cb1-935760b70ca2)
 
 ---
