@@ -24,7 +24,7 @@ What's up, my g! 🥷
    
       * *If you can't find the repository name in your list then choose URL and paste in this:*
         ```
-        mohamed-ra-username/NlggaPenis
+        mohamed-ra-username/NLP
         ```
    ![image](https://github.com/user-attachments/assets/8824f8b0-db15-47f9-9891-0333d37d2817)
    
