@@ -9,17 +9,47 @@ What's up, my g! 🥷
 
 # How to install?
 1) 
-    * Click on code
-    * Create new codespace
-  ![image](https://github.com/user-attachments/assets/3d406b4b-f0fb-4746-9da3-ffb498e5b399)
+   * Open your '[GitHub Desktop](https://github.com/apps/desktop)'
+   * Sign in and do whatever you need to do to set it up
+2) Clone repository 
+   * Click on "File"
+     
+     ![image](https://github.com/user-attachments/assets/6b3f872d-f90d-4ab0-a74c-d990c9cb4415)
+
+   * Clone repository
+   
+   ![image](https://github.com/user-attachments/assets/431cd86c-35e9-42f8-bc37-4717cf12de1b)
+   
+   * Pick our repository name
+   
+   ![image](https://github.com/user-attachments/assets/8824f8b0-db15-47f9-9891-0333d37d2817)
+   
+
+   * Pick folder location (to save this repo in)
+   
+   ![image](https://github.com/user-attachments/assets/c4556e19-90f4-4c4c-9c76-a1ab603575d7)
+
+      * *If you can't find the repository name in your list then choose URL and paste in this:*
+        ```
+        mohamed-ra-username/NlggaPenis
+        ```
 2) Let it load (now we wait)
 
-  ![image](https://github.com/user-attachments/assets/408302b2-977f-48ce-9e08-391f298a2090)
+   ![image](https://github.com/user-attachments/assets/3d7d3a4b-b689-4a48-aa2d-1f275218897c)
 
-3) Now we have fun!
+3) Click open in VS code
+  
+   ![image](https://github.com/user-attachments/assets/f21b9100-a3de-4829-a20b-89abddb9d59a)
+
+6) Now we have fun!
 
   ![Party](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbWFubmx5eDh5NjJ4NWViZHFveWNteWRyejBzZGZ4YjlsZmNzdGQzNSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/10UeedrT5MIfPG/giphy.gif)
 
+---
+# Issues
+```
+If you have `"immport issues"` and can't run the code, then you should run `install_libraries.bat` file  
+```
 ---
 # Optional
 - ## You should download [GitHub Desktop](https://github.com/apps/desktop)
