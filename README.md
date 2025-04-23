@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/c4f7395d-df92-4ca9-8823-febccccc9487)# NLP
+# NLP
 **Description:** Our khazook
 
 **Introduction:**
