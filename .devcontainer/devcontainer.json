@@ -24,7 +24,8 @@
 				"genuitecllc.codetogether",
 				"GitHub.codespaces",
 				"GitHub.remotehub",
-				"eamodio.gitlens"
+				"eamodio.gitlens",
+				"ms-toolsai.jupyter"
 			],
 			"settings": {
 				"editor.fontLigatures": true,
