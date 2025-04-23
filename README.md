@@ -1,4 +1,4 @@
-# NLP
+![image](https://github.com/user-attachments/assets/c4f7395d-df92-4ca9-8823-febccccc9487)# NLP
 **Description:** Our khazook
 
 **Introduction:**
@@ -47,25 +47,11 @@ What's up, my g! 🥷
 
 ---
 # Issues
-```
-If you have `"immport issues"` and can't run the code, then you should run `install_libraries.bat` file  
-```
+If you have "immport issues" and can't run the code, then you should run `install_libraries.bat` file  
+![image](https://github.com/user-attachments/assets/ef0100f7-2265-4821-9cb1-935760b70ca2)
+
 ---
 # Optional
-- ## You should download [GitHub Desktop](https://github.com/apps/desktop)
-
-- ## If you want to use your own VS code program
-![vs code](https://github.com/user-attachments/assets/4f3648c8-d851-41b7-8b56-f6fb47cf9164)
-
-Then follow these steps:
-1) Go back to the Repository 
-2) 
-    * Click on code
-    * Click on your codespace *(it should have a different name than mine)*
-    * Click `'Open in Visual Studio Code'`
-![image](https://github.com/user-attachments/assets/9870146e-aa53-40a0-a375-fde48431a3e3)
-    * Now you're on your own. do the rest yourself 🙂😏
-
 - ## If you want this custom font pay me for it _(🍬 سكوتش مينت)_ 😏
 
 ![image](https://github.com/user-attachments/assets/ab3f4a4d-dbfc-4fa4-a20f-5141bf72388d)
