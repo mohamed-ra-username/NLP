@@ -18,21 +18,22 @@ What's up, my g! 🥷
 
    * Clone repository
    
-   ![image](https://github.com/user-attachments/assets/431cd86c-35e9-42f8-bc37-4717cf12de1b)
+  ![image](https://github.com/user-attachments/assets/3feb223e-01d7-4c55-9bb2-953d355d3450)
    
    * Pick our repository name
    
+      * *If you can't find the repository name in your list then choose URL and paste in this:*
+        ```
+        mohamed-ra-username/NlggaPenis
+        ```
    ![image](https://github.com/user-attachments/assets/8824f8b0-db15-47f9-9891-0333d37d2817)
    
 
    * Pick folder location (to save this repo in)
    
    ![image](https://github.com/user-attachments/assets/c4556e19-90f4-4c4c-9c76-a1ab603575d7)
-
-      * *If you can't find the repository name in your list then choose URL and paste in this:*
-        ```
-        mohamed-ra-username/NlggaPenis
-        ```
+   * then hit Clone
+     
 2) Let it load (now we wait)
 
    ![image](https://github.com/user-attachments/assets/3d7d3a4b-b689-4a48-aa2d-1f275218897c)
