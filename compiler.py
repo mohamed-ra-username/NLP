@@ -205,18 +205,33 @@ def main():
         if l.strip().upper()=='END': break
         lines.append(l)
     code = '\n'.join(lines)
+    
+    # Step 1: Tokenization
     tokens = tokenize(code)
+    print("\nTokens:")
+    for t in tokens:
+        print(t)
+    
+    # Step 2: Parsing
     parser = Parser(tokens)
     try:
         stmts = parser.parse_all()
+        print("\nParsed AST:")
+        from pprint import pprint
+        pprint(stmts)
     except RuntimeError as e:
         print('Parse error:', e)
         return
+    
+    # Step 3: Code Generation
     cg = CodeGen()
     cg.generate(stmts)
-    print('\nAssembly:')
+    print("\nGenerated Assembly:")
     for line in cg.code:
         print(line)
-    print('Vars:', cg.vars)
+    print("\nVariable mappings:")
+    for var, reg in cg.vars.items():
+        print(f"{var} -> {reg}")
 
-if __name__=='__main__': main()
+if __name__=='__main__': 
+    main()
