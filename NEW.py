@@ -69,7 +69,6 @@ class ImageProcessingGUI(wx.Frame):
             ("Enhance", self.enhance),
             ("Gray & Enhance", self.gray_enhance),
         ]
-
         # Calculate rows for 2 columns
         num_buttons = len(btns)
         cols = 2
@@ -104,7 +103,7 @@ class ImageProcessingGUI(wx.Frame):
             new_w = int(max_dim * aspect_ratio)
         resized = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
-        # Centered in 200x200 canvas
+        # Centered in 340x340 canvas
         canvas = np.zeros((340, 340, 3), dtype=np.uint8)
         y_off = (340 - new_h) // 2
         x_off = (340 - new_w) // 2
