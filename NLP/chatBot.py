@@ -38,7 +38,7 @@ def LemNormalize(text):
 Introduce_Ans = [
     "My name is Meteor Bot.",
     "You can call me Meteor Bot or B.O.T.",
-    "I'm PyBot, happy to chat!",
+    "I'm Meteor Bot, happy to chat!",
 ]
 GREETING_INPUTS = ("hello", "hi", "greetings", "sup", "what's up", "hey")
 GREETING_RESPONSES = ["hi", "hey", "hello", "hi there", "hello there"]
@@ -94,9 +94,12 @@ def chat(user_response):
 
     if user_response == 'bye':
         return "Bye! Take care."
-
+    
     if user_response in ['thanks', 'thank you']:
         return "You're welcome."
+    
+    if user_response in ["how are you", "how r u", "how're you", "how are ya", "how's it going", "how's everything"]:
+        return "I'm fine, thank you for asking!"
 
     if greeting(user_response):
         return greeting(user_response)
