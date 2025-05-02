@@ -49,8 +49,8 @@ class ImageProcessingGUI(wx.Frame):
 
         # Image display panels
         disp_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.before_bmp = wx.StaticBitmap(self, size=(200, 200))
-        self.after_bmp = wx.StaticBitmap(self, size=(200, 200))
+        self.before_bmp = wx.StaticBitmap(self, size=(340, 340))
+        self.after_bmp = wx.StaticBitmap(self, size=(340, 340))
         for lbl, bmp in [("Before", self.before_bmp), ("After", self.after_bmp)]:
             box = wx.StaticBox(self, label=lbl)
             box_sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
@@ -61,13 +61,13 @@ class ImageProcessingGUI(wx.Frame):
         # Buttons
         btns = [
             ("Load Image", self.load_image),
-            ("Enhance", self.enhance),
             ("Edge Detect", self.edge_detect),
-            ("Threshold", self.threshold),
-            ("Gray & Enhance", self.gray_enhance),
+            ("Threshold", self.threshold),          
             ("Sharpen (Laplacian)", self.sharpen_laplacian),
             ("Custom Gaussian Blur", self.custom_gaussian),
             ("Local Histogram Equalization", self.local_hist_eq),
+            ("Enhance", self.enhance),
+            ("Gray & Enhance", self.gray_enhance),
         ]
 
         # Calculate rows for 2 columns
@@ -94,7 +94,7 @@ class ImageProcessingGUI(wx.Frame):
 
         # Resize to fit display
         h, w = img_bgr.shape[:2]
-        max_dim = 200
+        max_dim = 340
         aspect_ratio = w / h
         if aspect_ratio > 1:
             new_w = max_dim
@@ -105,9 +105,9 @@ class ImageProcessingGUI(wx.Frame):
         resized = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
         # Centered in 200x200 canvas
-        canvas = np.zeros((200, 200, 3), dtype=np.uint8)
-        y_off = (200 - new_h) // 2
-        x_off = (200 - new_w) // 2
+        canvas = np.zeros((340, 340, 3), dtype=np.uint8)
+        y_off = (340 - new_h) // 2
+        x_off = (340 - new_w) // 2
         canvas[y_off:y_off+new_h, x_off:x_off+new_w] = resized
 
         rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
@@ -132,23 +132,6 @@ class ImageProcessingGUI(wx.Frame):
     def get_current_img(self):
         return self.proc_img if self.proc_img is not None else self.original_img
 
-    def enhance(self, event):
-        img = self.get_current_img()
-        if img is None:
-            wx.MessageBox("Load an image first.", "Error")
-            return
-        img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR) if len(img.shape)==2 else img.copy()
-        kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
-        sharpened = cv2.filter2D(img_bgr, -1, kernel)
-        blurred = cv2.GaussianBlur(img_bgr, (9, 9), 0)
-        combined = cv2.addWeighted(sharpened, 0.4, cv2.addWeighted(img_bgr, 1.5, blurred, -0.5, 0), 0.6, 0)
-        hsv = cv2.cvtColor(combined, cv2.COLOR_BGR2HSV)
-        h, s, v = cv2.split(hsv)
-        v_eq = cv2.equalizeHist(v)
-        final = cv2.cvtColor(cv2.merge([h, s, v_eq]), cv2.COLOR_HSV2BGR)
-        self.proc_img = final
-        self.display_image(self.proc_img, self.after_bmp)
-
     def edge_detect(self, event):
         img = self.get_current_img()
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
@@ -161,15 +144,6 @@ class ImageProcessingGUI(wx.Frame):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
         _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
         self.proc_img = thresh
-        self.display_image(self.proc_img, self.after_bmp)
-
-    def gray_enhance(self, event):
-        img = self.get_current_img()
-        if img is None:
-            wx.MessageBox("Load an image first.", "Error")
-            return
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
-        self.proc_img = cv2.equalizeHist(gray)
         self.display_image(self.proc_img, self.after_bmp)
 
     def sharpen_laplacian(self, event):
@@ -192,6 +166,32 @@ class ImageProcessingGUI(wx.Frame):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
         result = local_his_eq(gray, 5)
         self.proc_img = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
+        self.display_image(self.proc_img, self.after_bmp)
+
+    def enhance(self, event):
+        img = self.get_current_img()
+        if img is None:
+            wx.MessageBox("Load an image first.", "Error")
+            return
+        img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR) if len(img.shape)==2 else img.copy()
+        kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
+        sharpened = cv2.filter2D(img_bgr, -1, kernel)
+        blurred = cv2.GaussianBlur(img_bgr, (9, 9), 0)
+        combined = cv2.addWeighted(sharpened, 0.4, cv2.addWeighted(img_bgr, 1.5, blurred, -0.5, 0), 0.6, 0)
+        hsv = cv2.cvtColor(combined, cv2.COLOR_BGR2HSV)
+        h, s, v = cv2.split(hsv)
+        v_eq = cv2.equalizeHist(v)
+        final = cv2.cvtColor(cv2.merge([h, s, v_eq]), cv2.COLOR_HSV2BGR)
+        self.proc_img = final
+        self.display_image(self.proc_img, self.after_bmp)
+
+    def gray_enhance(self, event):
+        img = self.get_current_img()
+        if img is None:
+            wx.MessageBox("Load an image first.", "Error")
+            return
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
+        self.proc_img = cv2.equalizeHist(gray)
         self.display_image(self.proc_img, self.after_bmp)
 
 if __name__ == '__main__':
