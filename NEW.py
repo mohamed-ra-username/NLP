@@ -36,7 +36,7 @@ def local_his_eq(img, ker_size):
 
 class ImageProcessingGUI(wx.Frame):
     def __init__(self, parent, title):
-        super().__init__(parent, title=title, size=(1000, 700),
+        super().__init__(parent, title=title, size=(1000, 800),
                          style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER)
         self.original_img = None
         self.proc_img = None
@@ -45,12 +45,18 @@ class ImageProcessingGUI(wx.Frame):
 
     def setup_ui(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(wx.StaticText(self, label="Load an image and choose processing options."), 0, wx.ALL, 5)
+
+        # Load Image Button placed above the images
+        load_btn = wx.Button(self, label="Load Image")
+        load_btn.Bind(wx.EVT_BUTTON, self.load_image)
+        sizer.Add(load_btn, 0, wx.ALL | wx.CENTER, 10)
 
         # Image display panels
         disp_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
         self.before_bmp = wx.StaticBitmap(self, size=(340, 340))
         self.after_bmp = wx.StaticBitmap(self, size=(340, 340))
+
         for lbl, bmp in [("Before", self.before_bmp), ("After", self.after_bmp)]:
             box = wx.StaticBox(self, label=lbl)
             box_sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
@@ -58,21 +64,19 @@ class ImageProcessingGUI(wx.Frame):
             disp_sizer.Add(box_sizer, 0, wx.ALL, 5)
         sizer.Add(disp_sizer, 0, wx.CENTER)
 
-        # Buttons
+        # Buttons grid
         btns = [
-            ("Load Image", self.load_image),
             ("Edge Detect", self.edge_detect),
-            ("Threshold", self.threshold),          
-            ("Sharpen (Laplacian)", self.sharpen_laplacian),
+            ("Threshold", self.threshold),
             ("Custom Gaussian Blur", self.custom_gaussian),
             ("Local Histogram Equalization", self.local_hist_eq),
             ("Enhance", self.enhance),
             ("Gray & Enhance", self.gray_enhance),
         ]
-        # Calculate rows for 2 columns
+
         num_buttons = len(btns)
         cols = 2
-        rows = (num_buttons + cols - 1) // cols  # Ensures enough rows
+        rows = (num_buttons + cols - 1) // cols
 
         btn_sizer = wx.GridSizer(rows, cols, 10, 10)
         for label, handler in btns:
@@ -80,6 +84,11 @@ class ImageProcessingGUI(wx.Frame):
             btn.Bind(wx.EVT_BUTTON, handler)
             btn_sizer.Add(btn, 0, wx.EXPAND)
         sizer.Add(btn_sizer, 0, wx.ALL | wx.CENTER, 10)
+
+        # "Back to Original" Button
+        self.back_btn = wx.Button(self, label="Back to Original")
+        self.back_btn.Bind(wx.EVT_BUTTON, self.back_to_original)
+        sizer.Add(self.back_btn, 0, wx.ALL | wx.CENTER, 10)
 
         self.SetSizer(sizer)
 
@@ -127,12 +136,25 @@ class ImageProcessingGUI(wx.Frame):
                     self.proc_img = None
                     self.display_image(self.original_img, self.before_bmp)
                     self.display_image(self.original_img, self.after_bmp)
+                    self.back_btn.Enable(True)
+                else:
+                    wx.MessageBox("Failed to load image.", "Error")
+        # Disable back button until an image is loaded
+        self.back_btn.Enable(self.original_img is not None)
 
     def get_current_img(self):
         return self.proc_img if self.proc_img is not None else self.original_img
 
+    def back_to_original(self, event):
+        if self.original_img is not None:
+            self.proc_img = None
+            self.display_image(self.original_img, self.after_bmp)
+
     def edge_detect(self, event):
         img = self.get_current_img()
+        if img is None:
+            wx.MessageBox("Load an image first.", "Error")
+            return
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
         edges = cv2.Canny(gray, 100, 200)
         self.proc_img = edges
@@ -140,21 +162,19 @@ class ImageProcessingGUI(wx.Frame):
 
     def threshold(self, event):
         img = self.get_current_img()
+        if img is None:
+            wx.MessageBox("Load an image first.", "Error")
+            return
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
         _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
         self.proc_img = thresh
         self.display_image(self.proc_img, self.after_bmp)
 
-    def sharpen_laplacian(self, event):
-        img = self.get_current_img()
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
-        lap = cv2.Laplacian(gray, cv2.CV_64F)
-        sharp = cv2.convertScaleAbs(gray + lap)
-        self.proc_img = sharp
-        self.display_image(self.proc_img, self.after_bmp)
-
     def custom_gaussian(self, event):
         img = self.get_current_img()
+        if img is None:
+            wx.MessageBox("Load an image first.", "Error")
+            return
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
         blurred = Gaussian(gray, 43, 1)
         self.proc_img = cv2.cvtColor(blurred.astype(np.uint8), cv2.COLOR_GRAY2BGR)
@@ -162,6 +182,9 @@ class ImageProcessingGUI(wx.Frame):
 
     def local_hist_eq(self, event):
         img = self.get_current_img()
+        if img is None:
+            wx.MessageBox("Load an image first.", "Error")
+            return
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
         result = local_his_eq(gray, 5)
         self.proc_img = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
