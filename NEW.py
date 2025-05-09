@@ -1,39 +1,26 @@
 import wx
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 
-# Corrected Gaussian function
-def Gaussian(img, ker_size, k):
-    var = ker_size / 6
-    kernel = np.zeros((ker_size, ker_size), dtype=np.float32)
-    center = ker_size // 2
-    for s in range(ker_size):
-        for t in range(ker_size):
-            r2 = (s - center) ** 2 + (t - center) ** 2
-            kernel[s, t] = k * np.exp(-r2 / (2 * var ** 2))
-    kernel /= np.sum(kernel)
-    pad = ker_size // 2
-    padded = np.pad(img, pad, 'reflect')
-    out = np.zeros_like(img, dtype=np.float32)
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            out[i, j] = np.sum(padded[i:i+ker_size, j:j+ker_size] * kernel)
-    return out
+# --- Image Processing Functions ---
 
-# Local histogram equalization on patches
-def local_his_eq(img, ker_size):
-    pad = ker_size // 2
-    padded = np.pad(img, pad, 'reflect')
-    result = np.zeros_like(img, dtype=np.uint8)
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            patch = padded[i:i+ker_size, j:j+ker_size]
-            cdf = cv2.calcHist([patch], [0], None, [256], [0, 256]).cumsum()
-            cdf_normalized = cdf * 255 / cdf[-1]
-            result[i, j] = cdf_normalized[patch[ker_size//2, ker_size//2]]
-    return result
+def sharpen(img):
+    kernel = np.array([[0, -1, 0], [-1, 5,-1], [0, -1, 0]])
+    return cv2.filter2D(img, -1, kernel)
 
+def edge_detect(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    return cv2.Canny(gray, 100, 200)
+
+def blur(img):
+    return cv2.GaussianBlur(img, (15, 15), 0)
+
+def hist_eq(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    eq = cv2.equalizeHist(gray)
+    return cv2.cvtColor(eq, cv2.COLOR_GRAY2BGR)
+
+# --- GUI Class ---
 class ImageProcessingGUI(wx.Frame):
     def __init__(self, parent, title):
         super().__init__(parent, title=title, size=(1000, 800),
@@ -44,85 +31,87 @@ class ImageProcessingGUI(wx.Frame):
         self.Show()
 
     def setup_ui(self):
+        panel = wx.Panel(self)
+        self.panel = panel
+        panel.SetBackgroundColour(wx.Colour(32, 32, 48))  # Dark background color
+
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # Load Image Button placed above the images
-        load_btn = wx.Button(self, label="Load Image")
+        # Load Image Button
+        load_btn = wx.Button(panel, label="Load Image")
         load_btn.Bind(wx.EVT_BUTTON, self.load_image)
         sizer.Add(load_btn, 0, wx.ALL | wx.CENTER, 10)
 
-        # Image display panels
+        # Image Display Section
         disp_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.before_label = wx.StaticText(panel, label="Before")
+        self.after_label = wx.StaticText(panel, label="After")
 
-        self.before_bmp = wx.StaticBitmap(self, size=(340, 340))
-        self.after_bmp = wx.StaticBitmap(self, size=(340, 340))
+        # Placeholder for before and after images
+        self.before_bmp = wx.StaticBitmap(panel, size=(340, 340))
+        self.after_bmp = wx.StaticBitmap(panel, size=(340, 340))
 
-        for lbl, bmp in [("Before", self.before_bmp), ("After", self.after_bmp)]:
-            box = wx.StaticBox(self, label=lbl)
-            box_sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
-            box_sizer.Add(bmp, 1, wx.EXPAND | wx.ALL, 5)
-            disp_sizer.Add(box_sizer, 0, wx.ALL, 5)
+        # Set placeholders
+        self.set_placeholder(self.before_bmp)
+        self.set_placeholder(self.after_bmp)
+
+        for label, bmp in [(self.before_label, self.before_bmp), (self.after_label, self.after_bmp)]:
+            box = wx.BoxSizer(wx.VERTICAL)
+            label.SetForegroundColour(wx.Colour(255, 255, 255))  # White text
+            label.SetFont(wx.Font(11, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
+            box.Add(label, 0, wx.CENTER | wx.BOTTOM, 5)
+            box.Add(bmp, 0, wx.CENTER | wx.ALL, 5)
+            disp_sizer.Add(box, 0, wx.ALL, 10)
+
         sizer.Add(disp_sizer, 0, wx.CENTER)
 
-        # Buttons grid
+        # Filter Buttons
         btns = [
-            ("Edge Detect", self.edge_detect),
-            ("Threshold", self.threshold),
-            ("Custom Gaussian Blur", self.custom_gaussian),
-            ("Local Histogram Equalization", self.local_hist_eq),
-            ("Enhance", self.enhance),
-            ("Gray & Enhance", self.gray_enhance),
+            ("Sharpen", self.sharpen),
+            ("Edge Detection", self.edge_detect),
+            ("Blur", self.blur),
+            ("Histogram Equalization", self.hist_eq),
         ]
 
-        num_buttons = len(btns)
-        cols = 2
-        rows = (num_buttons + cols - 1) // cols
-
-        btn_sizer = wx.GridSizer(rows, cols, 10, 10)
+        grid_sizer = wx.GridSizer(rows=2, cols=2, vgap=10, hgap=10)
+        self.buttons = []
         for label, handler in btns:
-            btn = wx.Button(self, label=label)
+            btn = wx.Button(panel, label=label)
             btn.Bind(wx.EVT_BUTTON, handler)
-            btn_sizer.Add(btn, 0, wx.EXPAND)
-        sizer.Add(btn_sizer, 0, wx.ALL | wx.CENTER, 10)
+            self.buttons.append(btn)
+            grid_sizer.Add(btn, 0, wx.EXPAND)
 
-        # "Back to Original" Button
-        self.back_btn = wx.Button(self, label="Back to Original")
+        sizer.Add(grid_sizer, 0, wx.ALL | wx.CENTER, 10)
+
+        # Back Button
+        self.back_btn = wx.Button(panel, label="Back to Original")
         self.back_btn.Bind(wx.EVT_BUTTON, self.back_to_original)
         sizer.Add(self.back_btn, 0, wx.ALL | wx.CENTER, 10)
 
-        self.SetSizer(sizer)
+        panel.SetSizer(sizer)
+
+    def set_placeholder(self, bmp_widget):
+        placeholder = np.full((340, 340, 3), (240, 240, 240), dtype=np.uint8)  # Light gray
+        bmp = wx.Bitmap.FromBuffer(340, 340, placeholder)
+        bmp_widget.SetBitmap(bmp)
 
     def display_image(self, img, bmp_widget):
         if img is None:
             return
-        if len(img.shape) == 2:
-            img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        else:
-            img_bgr = img.copy()
-
-        # Resize to fit display
+        img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR) if len(img.shape) == 2 else img.copy()
         h, w = img_bgr.shape[:2]
         max_dim = 340
         aspect_ratio = w / h
-        if aspect_ratio > 1:
-            new_w = max_dim
-            new_h = int(max_dim / aspect_ratio)
-        else:
-            new_h = max_dim
-            new_w = int(max_dim * aspect_ratio)
+        new_w, new_h = (max_dim, int(max_dim / aspect_ratio)) if aspect_ratio > 1 else (int(max_dim * aspect_ratio), max_dim)
         resized = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
-
-        # Centered in 340x340 canvas
-        canvas = np.zeros((340, 340, 3), dtype=np.uint8)
+        canvas = np.full((340, 340, 3), 240, dtype=np.uint8)  # Light gray background
         y_off = (340 - new_h) // 2
         x_off = (340 - new_w) // 2
         canvas[y_off:y_off+new_h, x_off:x_off+new_w] = resized
-
         rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
-        height, width = rgb.shape[:2]
-        bmp = wx.Bitmap.FromBufferRGBA(width, height, cv2.cvtColor(rgb, cv2.COLOR_RGB2RGBA).tobytes())
+        bmp = wx.Bitmap.FromBuffer(340, 340, rgb)
         bmp_widget.SetBitmap(bmp)
-        self.Layout()
+        self.panel.Layout()
 
     def load_image(self, event=None):
         with wx.FileDialog(self, "Open Image", "", "",
@@ -136,11 +125,8 @@ class ImageProcessingGUI(wx.Frame):
                     self.proc_img = None
                     self.display_image(self.original_img, self.before_bmp)
                     self.display_image(self.original_img, self.after_bmp)
-                    self.back_btn.Enable(True)
                 else:
                     wx.MessageBox("Failed to load image.", "Error")
-        # Disable back button until an image is loaded
-        self.back_btn.Enable(self.original_img is not None)
 
     def get_current_img(self):
         return self.proc_img if self.proc_img is not None else self.original_img
@@ -150,73 +136,40 @@ class ImageProcessingGUI(wx.Frame):
             self.proc_img = None
             self.display_image(self.original_img, self.after_bmp)
 
+    def sharpen(self, event):
+        img = self.get_current_img()
+        if img is None:
+            wx.MessageBox("Load an image first.", "Error")
+            return
+        self.proc_img = sharpen(img)
+        self.display_image(self.proc_img, self.after_bmp)
+
     def edge_detect(self, event):
         img = self.get_current_img()
         if img is None:
             wx.MessageBox("Load an image first.", "Error")
             return
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
-        edges = cv2.Canny(gray, 100, 200)
-        self.proc_img = edges
+        self.proc_img = edge_detect(img)
         self.display_image(self.proc_img, self.after_bmp)
 
-    def threshold(self, event):
+    def blur(self, event):
         img = self.get_current_img()
         if img is None:
             wx.MessageBox("Load an image first.", "Error")
             return
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
-        _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
-        self.proc_img = thresh
+        self.proc_img = blur(img)
         self.display_image(self.proc_img, self.after_bmp)
 
-    def custom_gaussian(self, event):
+    def hist_eq(self, event):
         img = self.get_current_img()
         if img is None:
             wx.MessageBox("Load an image first.", "Error")
             return
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
-        blurred = Gaussian(gray, 43, 1)
-        self.proc_img = cv2.cvtColor(blurred.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+        self.proc_img = hist_eq(img)
         self.display_image(self.proc_img, self.after_bmp)
 
-    def local_hist_eq(self, event):
-        img = self.get_current_img()
-        if img is None:
-            wx.MessageBox("Load an image first.", "Error")
-            return
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
-        result = local_his_eq(gray, 5)
-        self.proc_img = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
-        self.display_image(self.proc_img, self.after_bmp)
-
-    def enhance(self, event):
-        img = self.get_current_img()
-        if img is None:
-            wx.MessageBox("Load an image first.", "Error")
-            return
-        img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR) if len(img.shape)==2 else img.copy()
-        kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
-        sharpened = cv2.filter2D(img_bgr, -1, kernel)
-        blurred = cv2.GaussianBlur(img_bgr, (9, 9), 0)
-        combined = cv2.addWeighted(sharpened, 0.4, cv2.addWeighted(img_bgr, 1.5, blurred, -0.5, 0), 0.6, 0)
-        hsv = cv2.cvtColor(combined, cv2.COLOR_BGR2HSV)
-        h, s, v = cv2.split(hsv)
-        v_eq = cv2.equalizeHist(v)
-        final = cv2.cvtColor(cv2.merge([h, s, v_eq]), cv2.COLOR_HSV2BGR)
-        self.proc_img = final
-        self.display_image(self.proc_img, self.after_bmp)
-
-    def gray_enhance(self, event):
-        img = self.get_current_img()
-        if img is None:
-            wx.MessageBox("Load an image first.", "Error")
-            return
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
-        self.proc_img = cv2.equalizeHist(gray)
-        self.display_image(self.proc_img, self.after_bmp)
-
+# --- Run App ---
 if __name__ == '__main__':
     app = wx.App()
-    frame = ImageProcessingGUI(None, 'Image Processing GUI')
+    frame = ImageProcessingGUI(None, 'Image Processing GUI - Simple Filters')
     app.MainLoop()
