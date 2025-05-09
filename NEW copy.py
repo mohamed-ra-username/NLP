@@ -106,39 +106,6 @@ class ImageProcessingGUI(wx.Frame):
 
         self.SetSizer(sizer)
 
-    # def display_image(self, img, bmp_widget):
-    #     if img is None:
-    #         return
-    #     if len(img.shape) == 2:
-    #         img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-    #     else:
-    #         img_bgr = img.copy()
-
-    #     # Resize to fit display
-    #     h, w = img_bgr.shape[:2]
-    #     max_dim = 340
-    #     aspect_ratio = w / h
-    #     if aspect_ratio > 1:
-    #         new_w = max_dim
-    #         new_h = int(max_dim / aspect_ratio)
-    #     else:
-    #         new_h = max_dim
-    #         new_w = int(max_dim * aspect_ratio)
-    #     resized = cv2.resize(img_bgr, (new_w, new_h),
-    #                          interpolation=cv2.INTER_AREA)
-
-    #     # Centered in 340x340 canvas
-    #     canvas = np.zeros((340, 340, 3), dtype=np.uint8)
-    #     y_off = (340 - new_h) // 2
-    #     x_off = (340 - new_w) // 2
-    #     canvas[y_off:y_off+new_h, x_off:x_off+new_w] = resized
-
-    #     rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
-    #     height, width = rgb.shape[:2]
-    #     bmp = wx.Bitmap.FromBufferRGBA(
-    #         width, height, cv2.cvtColor(rgb, cv2.COLOR_RGB2RGBA).tobytes())
-    #     bmp_widget.SetBitmap(bmp)
-    #     self.Layout()
     def display_image(self, img, bmp_widget):
         if img is None:
             return
@@ -157,6 +124,7 @@ class ImageProcessingGUI(wx.Frame):
             width, height, cv2.cvtColor(rgb, cv2.COLOR_RGB2RGBA).tobytes())
         bmp_widget.SetBitmap(bmp)
         self.Layout()
+
     def ask_load_image(self, event=None):
         with wx.FileDialog(self, "Open Image", "", "",
                            "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg",
