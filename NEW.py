@@ -1,38 +1,96 @@
+from time import sleep
+from cv2.typing import MatLike
 import wx
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Corrected Gaussian function
-def Gaussian(img, ker_size, k):
-    var = ker_size / 6
-    kernel = np.zeros((ker_size, ker_size), dtype=np.float32)
-    center = ker_size // 2
-    for s in range(ker_size):
-        for t in range(ker_size):
-            r2 = (s - center) ** 2 + (t - center) ** 2
-            kernel[s, t] = k * np.exp(-r2 / (2 * var ** 2))
+# def Gaussian(img, ker_size, scaling_factor):
+#     print("Gaussian")
+#     var = ker_size / 6
+#     kernel = np.zeros((ker_size, ker_size), dtype=np.float32)
+#     center = ker_size // 2
+#     for s in range(ker_size):
+#         for t in range(ker_size):
+#             r2 = (s - center) ** 2 + (t - center) ** 2
+#             kernel[s, t] = scaling_factor * np.exp(-r2 / (2 * var ** 2))
+#     print("kernel")
+#     kernel /= np.sum(kernel)
+#     pad = ker_size // 2
+#     padded = np.pad(img, pad, 'reflect')
+#     out = np.zeros_like(img, dtype=np.float32)
+#     cv2.GaussianBlur(img, (ker_size, ker_size), 0)
+#     print("out")
+#     for i in range(img.shape[0]):
+#         for j in range(img.shape[1]):
+#             out[i, j] = np.sum(padded[i:i+ker_size, j:j+ker_size] * kernel)
+#     return out
+def Gaussian(img, ker_size, scaling_factor=1):
+    if ker_size % 2 == 0:
+        raise ValueError("Kernel size must be an odd number.")
+    
+    # Generate Gaussian kernel using OpenCV
+    kernel_1d = cv2.getGaussianKernel(ker_size, ker_size / 6)
+    kernel = np.outer(kernel_1d, kernel_1d) * scaling_factor  # Create 2D kernel
+    
+    # Normalize the kernel
     kernel /= np.sum(kernel)
-    pad = ker_size // 2
-    padded = np.pad(img, pad, 'reflect')
-    out = np.zeros_like(img, dtype=np.float32)
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            out[i, j] = np.sum(padded[i:i+ker_size, j:j+ker_size] * kernel)
+    
+    # Apply convolution using OpenCV's filter2D for better performance
+    out = cv2.filter2D(img, -1, kernel)
+    
     return out
 
-# Local histogram equalization on patches
-def local_his_eq(img, ker_size):
-    pad = ker_size // 2
-    padded = np.pad(img, pad, 'reflect')
-    result = np.zeros_like(img, dtype=np.uint8)
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            patch = padded[i:i+ker_size, j:j+ker_size]
-            cdf = cv2.calcHist([patch], [0], None, [256], [0, 256]).cumsum()
-            cdf_normalized = cdf * 255 / cdf[-1]
-            result[i, j] = cdf_normalized[patch[ker_size//2, ker_size//2]]
+def local_his_eq(img: MatLike, ker_size: int):
+    """
+    Perform local histogram equalization on patches of an image using CLAHE.
+
+    Args:
+        img (MatLike): Input grayscale image.
+        ker_size (int): Kernel size for local histogram equalization (tile grid size).
+
+    Returns:
+        np.ndarray: Image after local histogram equalization.
+    """
+    # Ensure the input image is grayscale
+    if len(img.shape) != 2:
+        raise ValueError("Input image must be a grayscale image.")
+
+    # Create a CLAHE object with the specified kernel size
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(ker_size, ker_size))
+    
+    # Apply CLAHE to the input image
+    result = clahe.apply(img)
+    
     return result
+# Local histogram equalization on patches
+# def local_his_eq(img: MatLike, ker_size: int) -> np.ndarray:
+#     # Use OpenCV's CLAHE for better performance and simplicity
+#     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(ker_size, ker_size))
+#     result = clahe.apply(img)
+#     return result
+# def local_his_eq(img, ker_size):
+#     # Create a CLAHE object with the specified kernel size
+#     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(ker_size, ker_size))
+    
+#     # Apply CLAHE to the input image
+#     result = clahe.apply(img)
+#     result = cv2.equalizeHist(result)
+#     # Convert the result back to the original image type
+#     return result
+# def plot_img_and_hist(img, axes, bins=256):
+#     """Plot an image along with its histogram and cumulative histogram."""
+#     hist,bins = np.histogram(img.flatten(),256,[0,256])
+ 
+#     cdf = hist.cumsum()
+#     cdf_normalized = cdf * float(hist.max()) / cdf.max()
+    
+#     plt.plot(cdf_normalized, color = 'b')
+#     plt.hist(img.flatten(),256,[0,256], color = 'r')
+#     plt.xlim([0,256])
+#     plt.legend(('cdf','histogram'), loc = 'upper left')
+#     plt.show()
 
 class ImageProcessingGUI(wx.Frame):
     def __init__(self, parent, title):
@@ -48,7 +106,7 @@ class ImageProcessingGUI(wx.Frame):
 
         # Load Image Button placed above the images
         load_btn = wx.Button(self, label="Load Image")
-        load_btn.Bind(wx.EVT_BUTTON, self.load_image)
+        load_btn.Bind(wx.EVT_BUTTON, self.ask_load_image)
         sizer.Add(load_btn, 0, wx.ALL | wx.CENTER, 10)
 
         # Image display panels
@@ -124,24 +182,25 @@ class ImageProcessingGUI(wx.Frame):
         bmp_widget.SetBitmap(bmp)
         self.Layout()
 
-    def load_image(self, event=None):
+    def ask_load_image(self, event=None):
         with wx.FileDialog(self, "Open Image", "", "",
                            "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg",
                            wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as dlg:
             if dlg.ShowModal() == wx.ID_OK:
                 path = dlg.GetPath()
-                img = cv2.imread(path)
-                if img is not None:
-                    self.original_img = img
-                    self.proc_img = None
-                    self.display_image(self.original_img, self.before_bmp)
-                    self.display_image(self.original_img, self.after_bmp)
-                    self.back_btn.Enable(True)
-                else:
-                    wx.MessageBox("Failed to load image.", "Error")
+                self.load_image(path)
         # Disable back button until an image is loaded
         self.back_btn.Enable(self.original_img is not None)
-
+    def load_image(self, path):
+        img = cv2.imread(path)
+        if img is not None:
+            self.original_img = img
+            self.proc_img = None
+            self.display_image(self.original_img, self.before_bmp)
+            self.display_image(self.original_img, self.after_bmp)
+            self.back_btn.Enable(True)
+        else:
+            wx.MessageBox("Failed to load image.", "Error")
     def get_current_img(self):
         return self.proc_img if self.proc_img is not None else self.original_img
 
@@ -185,8 +244,8 @@ class ImageProcessingGUI(wx.Frame):
         if img is None:
             wx.MessageBox("Load an image first.", "Error")
             return
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
-        result = local_his_eq(gray, 5)
+        gray:MatLike = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
+        result = local_his_eq(gray, 1000)
         self.proc_img = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
         self.display_image(self.proc_img, self.after_bmp)
 
@@ -217,6 +276,26 @@ class ImageProcessingGUI(wx.Frame):
         self.display_image(self.proc_img, self.after_bmp)
 
 if __name__ == '__main__':
+    # img = cv2.imread(r"C:\Users\mrmmo\Desktop\nnn.jpg", cv2.IMREAD_GRAYSCALE)
+    # assert img is not None, "file could not be read, check with os.path.exists()"
+    
+    # hist,bins = np.histogram(img.flatten(),256,[0,256])
+    
+    # cdf = hist.cumsum()
+    # cdf_normalized = cdf * float(hist.max()) / cdf.max()
+    
+    # plt.plot(cdf_normalized, color = 'b')
+    # plt.hist(x=img.flatten(),bins=256,range=[0,256], color = 'r')
+    # plt.xlim([0,256])
+    # plt.legend(('cdf','histogram'), loc = 'upper left')
+    # plt.show()
+    # cdf_m = np.ma.masked_equal(cdf,0)
+    # cdf_m = (cdf_m - cdf_m.min())*255/(cdf_m.max()-cdf_m.min())
+    # cdf = np.ma.filled(cdf_m,0).astype('uint8')
+    # img2 = cdf[img]
+    # cv2.imshow('img2', img2)
+    
     app = wx.App()
     frame = ImageProcessingGUI(None, 'Image Processing GUI')
+    frame.load_image(r"C:\Users\mrmmo\Desktop\nnn.jpg")
     app.MainLoop()
