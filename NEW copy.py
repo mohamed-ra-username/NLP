@@ -245,7 +245,7 @@ class ImageProcessingGUI(wx.Frame):
             wx.MessageBox("Load an image first.", "Error")
             return
         gray:MatLike = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
-        result = local_his_eq(gray, 1000)
+        result = local_his_eq(gray,500)
         self.proc_img = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
         self.display_image(self.proc_img, self.after_bmp)
 
