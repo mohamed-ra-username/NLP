@@ -82,10 +82,10 @@ class ImageProcessingGUI(wx.Frame):
         btns = [
             ("Edge Detect", self.edge_detect),
             ("Threshold", self.threshold),
-            ("Custom Gaussian Blur", self.custom_gaussian),
+            ("Grayscale Blur", self.custom_gaussian),
             ("Local Histogram Equalization", self.local_hist_eq),
             ("Enhance", self.enhance),
-            ("Gray & Enhance", self.gray_enhance),
+            ("Grayscale & Enhance", self.gray_enhance),
         ]
 
         num_buttons = len(btns)
@@ -106,40 +106,57 @@ class ImageProcessingGUI(wx.Frame):
 
         self.SetSizer(sizer)
 
+    # def display_image(self, img, bmp_widget):
+    #     if img is None:
+    #         return
+    #     if len(img.shape) == 2:
+    #         img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    #     else:
+    #         img_bgr = img.copy()
+
+    #     # Resize to fit display
+    #     h, w = img_bgr.shape[:2]
+    #     max_dim = 340
+    #     aspect_ratio = w / h
+    #     if aspect_ratio > 1:
+    #         new_w = max_dim
+    #         new_h = int(max_dim / aspect_ratio)
+    #     else:
+    #         new_h = max_dim
+    #         new_w = int(max_dim * aspect_ratio)
+    #     resized = cv2.resize(img_bgr, (new_w, new_h),
+    #                          interpolation=cv2.INTER_AREA)
+
+    #     # Centered in 340x340 canvas
+    #     canvas = np.zeros((340, 340, 3), dtype=np.uint8)
+    #     y_off = (340 - new_h) // 2
+    #     x_off = (340 - new_w) // 2
+    #     canvas[y_off:y_off+new_h, x_off:x_off+new_w] = resized
+
+    #     rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
+    #     height, width = rgb.shape[:2]
+    #     bmp = wx.Bitmap.FromBufferRGBA(
+    #         width, height, cv2.cvtColor(rgb, cv2.COLOR_RGB2RGBA).tobytes())
+    #     bmp_widget.SetBitmap(bmp)
+    #     self.Layout()
     def display_image(self, img, bmp_widget):
         if img is None:
             return
+
         if len(img.shape) == 2:
             img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         else:
             img_bgr = img.copy()
 
-        # Resize to fit display
-        h, w = img_bgr.shape[:2]
-        max_dim = 340
-        aspect_ratio = w / h
-        if aspect_ratio > 1:
-            new_w = max_dim
-            new_h = int(max_dim / aspect_ratio)
-        else:
-            new_h = max_dim
-            new_w = int(max_dim * aspect_ratio)
-        resized = cv2.resize(img_bgr, (new_w, new_h),
-                             interpolation=cv2.INTER_AREA)
+        # Resize to fill display without padding
+        resized = cv2.resize(img_bgr, (340, 340), interpolation=cv2.INTER_AREA)
 
-        # Centered in 340x340 canvas
-        canvas = np.zeros((340, 340, 3), dtype=np.uint8)
-        y_off = (340 - new_h) // 2
-        x_off = (340 - new_w) // 2
-        canvas[y_off:y_off+new_h, x_off:x_off+new_w] = resized
-
-        rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
+        rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
         height, width = rgb.shape[:2]
         bmp = wx.Bitmap.FromBufferRGBA(
             width, height, cv2.cvtColor(rgb, cv2.COLOR_RGB2RGBA).tobytes())
         bmp_widget.SetBitmap(bmp)
         self.Layout()
-
     def ask_load_image(self, event=None):
         with wx.FileDialog(self, "Open Image", "", "",
                            "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg",
@@ -248,5 +265,6 @@ if __name__ == '__main__':
 
     app = wx.App()
     frame = ImageProcessingGUI(None, 'Image Processing GUI')
+    # frame.load_image(r"C:\Users\mrmmo\Desktop\t.jpg")
     frame.load_image(r"C:\Users\mrmmo\Desktop\nnn.jpg")
     app.MainLoop()
