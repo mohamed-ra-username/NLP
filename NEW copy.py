@@ -5,42 +5,24 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Corrected Gaussian function
-# def Gaussian(img, ker_size, scaling_factor):
-#     print("Gaussian")
-#     var = ker_size / 6
-#     kernel = np.zeros((ker_size, ker_size), dtype=np.float32)
-#     center = ker_size // 2
-#     for s in range(ker_size):
-#         for t in range(ker_size):
-#             r2 = (s - center) ** 2 + (t - center) ** 2
-#             kernel[s, t] = scaling_factor * np.exp(-r2 / (2 * var ** 2))
-#     print("kernel")
-#     kernel /= np.sum(kernel)
-#     pad = ker_size // 2
-#     padded = np.pad(img, pad, 'reflect')
-#     out = np.zeros_like(img, dtype=np.float32)
-#     cv2.GaussianBlur(img, (ker_size, ker_size), 0)
-#     print("out")
-#     for i in range(img.shape[0]):
-#         for j in range(img.shape[1]):
-#             out[i, j] = np.sum(padded[i:i+ker_size, j:j+ker_size] * kernel)
-#     return out
+
 def Gaussian(img, ker_size, scaling_factor=1):
     if ker_size % 2 == 0:
         raise ValueError("Kernel size must be an odd number.")
-    
+
     # Generate Gaussian kernel using OpenCV
     kernel_1d = cv2.getGaussianKernel(ker_size, ker_size / 6)
-    kernel = np.outer(kernel_1d, kernel_1d) * scaling_factor  # Create 2D kernel
-    
+    kernel = np.outer(kernel_1d, kernel_1d) * \
+        scaling_factor  # Create 2D kernel
+
     # Normalize the kernel
     kernel /= np.sum(kernel)
-    
+
     # Apply convolution using OpenCV's filter2D for better performance
     out = cv2.filter2D(img, -1, kernel)
-    
+
     return out
+
 
 def local_his_eq(img: MatLike, ker_size: int):
     """
@@ -59,38 +41,12 @@ def local_his_eq(img: MatLike, ker_size: int):
 
     # Create a CLAHE object with the specified kernel size
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(ker_size, ker_size))
-    
+
     # Apply CLAHE to the input image
     result = clahe.apply(img)
-    
+
     return result
-# Local histogram equalization on patches
-# def local_his_eq(img: MatLike, ker_size: int) -> np.ndarray:
-#     # Use OpenCV's CLAHE for better performance and simplicity
-#     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(ker_size, ker_size))
-#     result = clahe.apply(img)
-#     return result
-# def local_his_eq(img, ker_size):
-#     # Create a CLAHE object with the specified kernel size
-#     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(ker_size, ker_size))
-    
-#     # Apply CLAHE to the input image
-#     result = clahe.apply(img)
-#     result = cv2.equalizeHist(result)
-#     # Convert the result back to the original image type
-#     return result
-# def plot_img_and_hist(img, axes, bins=256):
-#     """Plot an image along with its histogram and cumulative histogram."""
-#     hist,bins = np.histogram(img.flatten(),256,[0,256])
- 
-#     cdf = hist.cumsum()
-#     cdf_normalized = cdf * float(hist.max()) / cdf.max()
-    
-#     plt.plot(cdf_normalized, color = 'b')
-#     plt.hist(img.flatten(),256,[0,256], color = 'r')
-#     plt.xlim([0,256])
-#     plt.legend(('cdf','histogram'), loc = 'upper left')
-#     plt.show()
+
 
 class ImageProcessingGUI(wx.Frame):
     def __init__(self, parent, title):
@@ -168,7 +124,8 @@ class ImageProcessingGUI(wx.Frame):
         else:
             new_h = max_dim
             new_w = int(max_dim * aspect_ratio)
-        resized = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        resized = cv2.resize(img_bgr, (new_w, new_h),
+                             interpolation=cv2.INTER_AREA)
 
         # Centered in 340x340 canvas
         canvas = np.zeros((340, 340, 3), dtype=np.uint8)
@@ -178,7 +135,8 @@ class ImageProcessingGUI(wx.Frame):
 
         rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
         height, width = rgb.shape[:2]
-        bmp = wx.Bitmap.FromBufferRGBA(width, height, cv2.cvtColor(rgb, cv2.COLOR_RGB2RGBA).tobytes())
+        bmp = wx.Bitmap.FromBufferRGBA(
+            width, height, cv2.cvtColor(rgb, cv2.COLOR_RGB2RGBA).tobytes())
         bmp_widget.SetBitmap(bmp)
         self.Layout()
 
@@ -191,6 +149,7 @@ class ImageProcessingGUI(wx.Frame):
                 self.load_image(path)
         # Disable back button until an image is loaded
         self.back_btn.Enable(self.original_img is not None)
+
     def load_image(self, path):
         img = cv2.imread(path)
         if img is not None:
@@ -201,6 +160,7 @@ class ImageProcessingGUI(wx.Frame):
             self.back_btn.Enable(True)
         else:
             wx.MessageBox("Failed to load image.", "Error")
+
     def get_current_img(self):
         return self.proc_img if self.proc_img is not None else self.original_img
 
@@ -214,7 +174,8 @@ class ImageProcessingGUI(wx.Frame):
         if img is None:
             wx.MessageBox("Load an image first.", "Error")
             return
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(
+            img.shape) == 3 else img
         edges = cv2.Canny(gray, 100, 200)
         self.proc_img = edges
         self.display_image(self.proc_img, self.after_bmp)
@@ -224,7 +185,8 @@ class ImageProcessingGUI(wx.Frame):
         if img is None:
             wx.MessageBox("Load an image first.", "Error")
             return
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(
+            img.shape) == 3 else img
         _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
         self.proc_img = thresh
         self.display_image(self.proc_img, self.after_bmp)
@@ -234,9 +196,11 @@ class ImageProcessingGUI(wx.Frame):
         if img is None:
             wx.MessageBox("Load an image first.", "Error")
             return
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(
+            img.shape) == 3 else img
         blurred = Gaussian(gray, 43, 1)
-        self.proc_img = cv2.cvtColor(blurred.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+        self.proc_img = cv2.cvtColor(
+            blurred.astype(np.uint8), cv2.COLOR_GRAY2BGR)
         self.display_image(self.proc_img, self.after_bmp)
 
     def local_hist_eq(self, event):
@@ -244,8 +208,9 @@ class ImageProcessingGUI(wx.Frame):
         if img is None:
             wx.MessageBox("Load an image first.", "Error")
             return
-        gray:MatLike = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
-        result = local_his_eq(gray,500)
+        gray: MatLike = cv2.cvtColor(
+            img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img
+        result = local_his_eq(gray, 500)
         self.proc_img = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
         self.display_image(self.proc_img, self.after_bmp)
 
@@ -254,11 +219,13 @@ class ImageProcessingGUI(wx.Frame):
         if img is None:
             wx.MessageBox("Load an image first.", "Error")
             return
-        img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR) if len(img.shape)==2 else img.copy()
+        img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR) if len(
+            img.shape) == 2 else img.copy()
         kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
         sharpened = cv2.filter2D(img_bgr, -1, kernel)
         blurred = cv2.GaussianBlur(img_bgr, (9, 9), 0)
-        combined = cv2.addWeighted(sharpened, 0.4, cv2.addWeighted(img_bgr, 1.5, blurred, -0.5, 0), 0.6, 0)
+        combined = cv2.addWeighted(sharpened, 0.4, cv2.addWeighted(
+            img_bgr, 1.5, blurred, -0.5, 0), 0.6, 0)
         hsv = cv2.cvtColor(combined, cv2.COLOR_BGR2HSV)
         h, s, v = cv2.split(hsv)
         v_eq = cv2.equalizeHist(v)
@@ -271,30 +238,14 @@ class ImageProcessingGUI(wx.Frame):
         if img is None:
             wx.MessageBox("Load an image first.", "Error")
             return
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape)==3 else img
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(
+            img.shape) == 3 else img
         self.proc_img = cv2.equalizeHist(gray)
         self.display_image(self.proc_img, self.after_bmp)
 
+
 if __name__ == '__main__':
-    # img = cv2.imread(r"C:\Users\mrmmo\Desktop\nnn.jpg", cv2.IMREAD_GRAYSCALE)
-    # assert img is not None, "file could not be read, check with os.path.exists()"
-    
-    # hist,bins = np.histogram(img.flatten(),256,[0,256])
-    
-    # cdf = hist.cumsum()
-    # cdf_normalized = cdf * float(hist.max()) / cdf.max()
-    
-    # plt.plot(cdf_normalized, color = 'b')
-    # plt.hist(x=img.flatten(),bins=256,range=[0,256], color = 'r')
-    # plt.xlim([0,256])
-    # plt.legend(('cdf','histogram'), loc = 'upper left')
-    # plt.show()
-    # cdf_m = np.ma.masked_equal(cdf,0)
-    # cdf_m = (cdf_m - cdf_m.min())*255/(cdf_m.max()-cdf_m.min())
-    # cdf = np.ma.filled(cdf_m,0).astype('uint8')
-    # img2 = cdf[img]
-    # cv2.imshow('img2', img2)
-    
+
     app = wx.App()
     frame = ImageProcessingGUI(None, 'Image Processing GUI')
     frame.load_image(r"C:\Users\mrmmo\Desktop\nnn.jpg")
